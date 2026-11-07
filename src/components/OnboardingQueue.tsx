@@ -336,7 +336,7 @@ export const OnboardingQueue: React.FC<OnboardingQueueProps> = ({
 };
 
 
-/** Email verified? + how many of the 3 setup steps (profile, branches, academic) are done. */
+/** Email verified? Schools set up branches, session and classes after approval. */
 export const SignupProgress: React.FC<{ item: OnboardingQueueItem }> = ({ item }) => {
   const done = item.setup ? [item.setup.profile, item.setup.branches, item.setup.academic].filter(Boolean).length : null;
   return (
@@ -350,8 +350,10 @@ export const SignupProgress: React.FC<{ item: OnboardingQueueItem }> = ({ item }
           Email verified
         </span>
       )}
-      {done !== null && (
-        <p className="text-[10px] text-slate-500 dark:text-slate-400 font-mono">Setup {done}/3 steps</p>
+      {item.onboardingStatus === 'APPROVED' && done !== null && (
+        <p className="text-[10px] text-slate-500 dark:text-slate-400 font-mono">
+          {done === 3 ? 'Setup complete' : `Setup ${done}/3 steps`}
+        </p>
       )}
     </div>
   );

@@ -120,15 +120,15 @@ export const OnboardingReviewModal: React.FC<OnboardingReviewModalProps> = ({
             )}
             {[
               { label: 'Email verified (OTP)', ok: school.isVerified !== false },
-              { label: 'School profile', ok: !!school.setup?.profile },
-              { label: 'Branches', ok: !!school.setup?.branches },
-              { label: 'Academic session', ok: !!school.setup?.academic },
             ].map((s) => (
               <span key={s.label} className={`flex items-center gap-1 font-medium ${s.ok ? 'text-emerald-700 dark:text-emerald-400' : 'text-slate-400 dark:text-slate-500'}`}>
                 {s.ok ? <CheckCircle2 className="w-3.5 h-3.5" /> : <XCircle className="w-3.5 h-3.5" />}
                 {s.label}
               </span>
             ))}
+            <span className="text-[11px] text-slate-500 dark:text-slate-400">
+              After approval, the school gets an email with a link to set up its branches, session and classes.
+            </span>
             {school.isVerified === false && (
               <p className="w-full text-[11px] text-rose-600 dark:text-rose-400">
                 This school hasn't confirmed its email yet, so it can't be approved. It may be a typo or an abandoned signup.
