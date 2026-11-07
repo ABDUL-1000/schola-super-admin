@@ -9,7 +9,10 @@ import {
 } from '@/types';
 
 const API_BASE_URL =
-  import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api/v1/super-admin';
+  import.meta.env.VITE_API_BASE_URL || 'http://localhost:5001/api/v1/super-admin';
+
+/** Domain schools' portals live under (slug.<domain>). */
+export const APP_DOMAIN: string = import.meta.env.VITE_APP_DOMAIN || 'schola.com.ng';
 
 export const apiClient = axios.create({
   baseURL: API_BASE_URL,
@@ -218,8 +221,8 @@ export const api = {
       trialDays?: number;
       rejectionReason?: string;
     },
-  ): Promise<{ school: any; message: string }> {
+  ): Promise<{ message: string; emailSent: boolean; school: any }> {
     const res = await apiClient.post(`/onboarding/${id}/action`, data);
-    return res.data;
+    return { message: res.data.message, emailSent: res.data.data?.emailSent !== false, school: res.data.data };
   },
 };

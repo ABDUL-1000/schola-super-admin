@@ -69,6 +69,10 @@ export interface OnboardingQueueItem {
   createdAt: string;
   onboardingStatus: OnboardingStatus;
   rejectionReason: string | null;
+  /** Email confirmed with the signup OTP — required before approval. */
+  isVerified?: boolean;
+  logo?: string | null;
+  setup?: { profile: boolean; branches: boolean; academic: boolean };
 }
 
 export interface TenantSchool {

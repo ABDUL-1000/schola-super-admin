@@ -12,6 +12,7 @@ import {
   AlertTriangle,
 } from 'lucide-react';
 import { OnboardingQueueItem, SubscriptionTier } from '@/types';
+import { APP_DOMAIN } from '@/lib/api';
 
 interface OnboardingReviewModalProps {
   school: OnboardingQueueItem | null;
@@ -53,6 +54,8 @@ export const OnboardingReviewModal: React.FC<OnboardingReviewModalProps> = ({
         customRate: customRate.trim() ? Number(customRate) : undefined,
       });
       onClose();
+    } catch {
+      // Error already shown as a toast; keep the modal open so they can retry.
     } finally {
       setIsSubmitting(false);
     }
@@ -67,6 +70,8 @@ export const OnboardingReviewModal: React.FC<OnboardingReviewModalProps> = ({
     try {
       await onReject(school.id, rejectionReason.trim());
       onClose();
+    } catch {
+      // Error already shown as a toast; keep the modal open.
     } finally {
       setIsSubmitting(false);
     }
@@ -89,7 +94,7 @@ export const OnboardingReviewModal: React.FC<OnboardingReviewModalProps> = ({
                 </span>
               </div>
               <p className="text-xs text-slate-500 dark:text-slate-400 font-mono">
-                Subdomain: {school.slug}.schola.xyz • Registered on{' '}
+                Subdomain: {school.slug}.{APP_DOMAIN} • Registered on{' '}
                 {new Date(school.createdAt).toLocaleDateString(undefined, {
                   year: 'numeric',
                   month: 'short',
@@ -108,6 +113,28 @@ export const OnboardingReviewModal: React.FC<OnboardingReviewModalProps> = ({
 
         {/* Modal Body */}
         <div className="p-5 overflow-y-auto space-y-4 flex-1 text-xs">
+          {/* Signup checklist */}
+          <div className="p-3.5 rounded-lg bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 flex flex-wrap items-center gap-x-4 gap-y-2">
+            {school.logo && (
+              <img src={school.logo} alt="School logo" className="w-10 h-10 rounded object-contain bg-white border border-slate-200 dark:border-slate-700" />
+            )}
+            {[
+              { label: 'Email verified (OTP)', ok: school.isVerified !== false },
+              { label: 'School profile', ok: !!school.setup?.profile },
+              { label: 'Branches', ok: !!school.setup?.branches },
+              { label: 'Academic session', ok: !!school.setup?.academic },
+            ].map((s) => (
+              <span key={s.label} className={`flex items-center gap-1 font-medium ${s.ok ? 'text-emerald-700 dark:text-emerald-400' : 'text-slate-400 dark:text-slate-500'}`}>
+                {s.ok ? <CheckCircle2 className="w-3.5 h-3.5" /> : <XCircle className="w-3.5 h-3.5" />}
+                {s.label}
+              </span>
+            ))}
+            {school.isVerified === false && (
+              <p className="w-full text-[11px] text-rose-600 dark:text-rose-400">
+                This school hasn't confirmed its email yet, so it can't be approved. It may be a typo or an abandoned signup.
+              </p>
+            )}
+          </div>
           {/* Section 1: School & Administrator Identity Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
             {/* Primary Contact Person */}
@@ -185,7 +212,7 @@ export const OnboardingReviewModal: React.FC<OnboardingReviewModalProps> = ({
                 </h3>
                 <span className="text-xs text-emerald-600 dark:text-emerald-400 flex items-center gap-1 font-medium">
                   <CheckCircle2 className="w-3.5 h-3.5" />
-                  Auto-dispatches welcome credentials
+                  Emails the school when approved
                 </span>
               </div>              {/* Agreed Price Per Student Seat */}
               <div className="p-3.5 rounded-lg bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 space-y-2">
@@ -276,7 +303,8 @@ export const OnboardingReviewModal: React.FC<OnboardingReviewModalProps> = ({
                 </button>
                 <button
                   type="button"
-                  disabled={isSubmitting}
+                  disabled={isSubmitting || school.isVerified === false}
+                  title={school.isVerified === false ? "The school hasn't verified its email (OTP) yet" : undefined}
                   onClick={handleApproveSubmit}
                   className="px-4 py-2 rounded-lg text-xs font-semibold bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm flex items-center gap-1.5 transition-all active:scale-[0.98] disabled:opacity-50"
                 >
