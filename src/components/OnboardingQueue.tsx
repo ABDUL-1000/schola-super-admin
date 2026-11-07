@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 import { OnboardingQueueItem, SubscriptionTier } from '@/types';
 import { OnboardingReviewModal } from './OnboardingReviewModal';
+import { APP_DOMAIN } from '@/lib/api';
 
 interface OnboardingQueueProps {
   queue: OnboardingQueueItem[];
@@ -203,6 +204,7 @@ export const OnboardingQueue: React.FC<OnboardingQueueProps> = ({
                 <th className="py-3 px-3">Contact Person</th>
                 <th className="py-3 px-3">Email Address</th>
                 <th className="py-3 px-3">Phone</th>
+                <th className="py-3 px-3">Signup progress</th>
                 <th className="py-3 px-3">Registered</th>
                 <th className="py-3 px-4 text-right">Actions</th>
               </tr>
@@ -210,7 +212,7 @@ export const OnboardingQueue: React.FC<OnboardingQueueProps> = ({
             <tbody className="divide-y divide-slate-100 dark:divide-slate-800/60 text-xs">
               {isLoading ? (
                 <tr>
-                  <td colSpan={7} className="py-12 text-center text-slate-400 dark:text-slate-500 font-mono">
+                  <td colSpan={8} className="py-12 text-center text-slate-400 dark:text-slate-500 font-mono">
                     <div className="flex items-center justify-center gap-2">
                       <div className="w-4 h-4 border-2 border-indigo-600 border-t-transparent rounded-full animate-spin" />
                       <span>Loading onboarding queue...</span>
@@ -219,7 +221,7 @@ export const OnboardingQueue: React.FC<OnboardingQueueProps> = ({
                 </tr>
               ) : filteredQueue.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="py-14 text-center text-slate-400 dark:text-slate-500">
+                  <td colSpan={8} className="py-14 text-center text-slate-400 dark:text-slate-500">
                     <div className="flex flex-col items-center justify-center gap-2">
                       <div className="w-10 h-10 rounded-lg bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800/60 flex items-center justify-center text-emerald-600 dark:text-emerald-400">
                         <CheckCircle2 className="w-5 h-5" />
@@ -240,15 +242,19 @@ export const OnboardingQueue: React.FC<OnboardingQueueProps> = ({
                     {/* School Name & Subdomain */}
                     <td className="py-3 px-4">
                       <div className="flex items-center gap-2.5">
-                        <div className="w-8 h-8 rounded-lg bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-center text-indigo-600 dark:text-indigo-400 font-bold shrink-0 text-xs">
-                          {item.schoolName.charAt(0)}
+                        <div className="w-8 h-8 rounded-lg bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 flex items-center justify-center text-indigo-600 dark:text-indigo-400 font-bold shrink-0 text-xs overflow-hidden">
+                          {item.logo ? (
+                            <img src={item.logo} alt="" className="w-full h-full object-contain" />
+                          ) : (
+                            item.schoolName.charAt(0)
+                          )}
                         </div>
                         <div className="min-w-0">
                           <p className="font-semibold text-slate-900 dark:text-white text-xs truncate group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
                             {item.schoolName}
                           </p>
                           <p className="text-[11px] font-mono text-slate-500 dark:text-slate-400 truncate">
-                            {item.slug}.schola.xyz
+                            {item.slug}.{APP_DOMAIN}
                           </p>
                         </div>
                       </div>
@@ -283,6 +289,11 @@ export const OnboardingQueue: React.FC<OnboardingQueueProps> = ({
                     {/* Phone */}
                     <td className="py-3 px-3 font-mono text-slate-700 dark:text-slate-300 text-[11px]">
                       {item.phone}
+                    </td>
+
+                    {/* Signup progress */}
+                    <td className="py-3 px-3">
+                      <SignupProgress item={item} />
                     </td>
 
                     {/* Registered Date */}
@@ -324,3 +335,24 @@ export const OnboardingQueue: React.FC<OnboardingQueueProps> = ({
   );
 };
 
+
+/** Email verified? + how many of the 3 setup steps (profile, branches, academic) are done. */
+export const SignupProgress: React.FC<{ item: OnboardingQueueItem }> = ({ item }) => {
+  const done = item.setup ? [item.setup.profile, item.setup.branches, item.setup.academic].filter(Boolean).length : null;
+  return (
+    <div className="space-y-1">
+      {item.isVerified === false ? (
+        <span className="inline-block text-[10px] font-semibold px-1.5 py-0.5 rounded bg-rose-50 dark:bg-rose-950/40 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-800/60">
+          Email not verified
+        </span>
+      ) : (
+        <span className="inline-block text-[10px] font-semibold px-1.5 py-0.5 rounded bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/60">
+          Email verified
+        </span>
+      )}
+      {done !== null && (
+        <p className="text-[10px] text-slate-500 dark:text-slate-400 font-mono">Setup {done}/3 steps</p>
+      )}
+    </div>
+  );
+};

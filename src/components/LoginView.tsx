@@ -269,7 +269,8 @@ export const LoginView: React.FC<LoginViewProps> = ({ onLogin, isLoading }) => {
               </button>
             </form>
 
-            {/* Quick Demo Credentials Assistant */}
+            {/* Quick Demo Credentials Assistant (local development only) */}
+            {import.meta.env.DEV && (
             <div className="mt-6 pt-5 border-t border-slate-100 dark:border-slate-800">
               <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 flex items-center justify-between gap-3">
                 <div className="min-w-0">
@@ -290,6 +291,7 @@ export const LoginView: React.FC<LoginViewProps> = ({ onLogin, isLoading }) => {
                 </button>
               </div>
             </div>
+            )}
           </div>
 
           {/* Security footnote */}

@@ -18,13 +18,26 @@ import {
   setStoredAuth,
   clearStoredAuth,
 } from '@/lib/api';
-import {
-  MOCK_OVERVIEW,
-  MOCK_PRICING,
-  MOCK_TENANTS,
-  MOCK_TRANSACTIONS,
-  MOCK_ONBOARDING_QUEUE,
-} from '@/lib/mockData';
+import { MOCK_PRICING } from '@/lib/mockData';
+
+// Start empty: showing sample schools when the API is unreachable made it look like
+// real tenants existed (and hid connection problems).
+const EMPTY_OVERVIEW: OverviewMetrics = {
+  kpis: {
+    totalSchools: 0,
+    activeSchools: 0,
+    graceSchools: 0,
+    lockedSchools: 0,
+    expiredSchools: 0,
+    totalActiveStudents: 0,
+    totalStaff: 0,
+    realizedGrossRevenue: 0,
+    pendingOfflineReceiptsCount: 0,
+    pendingOnboardingApprovalsCount: 0,
+  },
+  platformPricing: MOCK_PRICING,
+  recentTransactions: [],
+};
 import { Sidebar, NavTab } from '@/components/Sidebar';
 import { Navbar } from '@/components/Navbar';
 import { KPIOverviewGrid } from '@/components/KPIOverviewGrid';
@@ -51,10 +64,10 @@ export const App: React.FC = () => {
   });
 
   // Data States
-  const [overview, setOverview] = useState<OverviewMetrics>(MOCK_OVERVIEW);
-  const [tenants, setTenants] = useState<TenantSchool[]>(MOCK_TENANTS);
-  const [transactions, setTransactions] = useState<SubscriptionTransaction[]>(MOCK_TRANSACTIONS);
-  const [onboardingQueue, setOnboardingQueue] = useState<OnboardingQueueItem[]>(MOCK_ONBOARDING_QUEUE);
+  const [overview, setOverview] = useState<OverviewMetrics>(EMPTY_OVERVIEW);
+  const [tenants, setTenants] = useState<TenantSchool[]>([]);
+  const [transactions, setTransactions] = useState<SubscriptionTransaction[]>([]);
+  const [onboardingQueue, setOnboardingQueue] = useState<OnboardingQueueItem[]>([]);
   const [pricing, setPricing] = useState<PlatformPricingConfig>(MOCK_PRICING);
   const [isLoading, setIsLoading] = useState<boolean>(false);
 
@@ -128,6 +141,16 @@ export const App: React.FC = () => {
       }
       if (onboardingRes.status === 'fulfilled' && onboardingRes.value?.queue) {
         setOnboardingQueue(onboardingRes.value.queue);
+      }
+      const failed = [overviewRes, tenantsRes, transactionsRes, pricingRes, onboardingRes].find(
+        (r): r is PromiseRejectedResult => r.status === 'rejected',
+      );
+      if (failed) {
+        const e: any = failed.reason;
+        toast.error(
+          e?.response?.data?.message ||
+            (e?.response ? `Some data failed to load (HTTP ${e.response.status}).` : `Can't reach the API at ${e?.config?.baseURL || 'the server'}.`),
+        );
       }
     } catch (err: any) {
       console.warn('API sync failed:', err);
@@ -300,29 +323,33 @@ export const App: React.FC = () => {
     }
   ) => {
     try {
-      await api.actionOnboarding(id, {
+      const res = await api.actionOnboarding(id, {
         action: 'APPROVE',
         initialPlan: options.initialPlan,
         trialDays: options.trialDays,
         customRate: options.customRate,
       });
-      toast.success('School application approved! Tenant activated with trial access.');
+      if (res.emailSent) toast.success(res.message);
+      else toast.warning(res.message, { duration: 10000 });
       await fetchData();
     } catch (err: any) {
       toast.error(err?.response?.data?.message || 'Failed to approve school registration.');
+      throw err;
     }
   };
 
   const handleRejectOnboarding = async (id: string, reason: string) => {
     try {
-      await api.actionOnboarding(id, {
+      const res = await api.actionOnboarding(id, {
         action: 'REJECT',
         rejectionReason: reason,
       });
-      toast.info('School application rejected. Rejection notice email sent.');
+      if (res.emailSent) toast.info(res.message);
+      else toast.warning(res.message, { duration: 10000 });
       await fetchData();
     } catch (err: any) {
       toast.error(err?.response?.data?.message || 'Failed to reject school registration.');
+      throw err;
     }
   };
 
