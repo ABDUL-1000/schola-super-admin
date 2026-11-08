@@ -1,6 +1,9 @@
 import axios from 'axios';
 import {
   AdminUser,
+  DeletionPreview,
+  DemoRequest,
+  DemoRequestStatus,
   OnboardingQueueItem,
   OverviewMetrics,
   PlatformPricingConfig,
@@ -130,6 +133,45 @@ export const api = {
   ): Promise<{ school: TenantSchool; computedBilling: any }> {
     const res = await apiClient.put(`/tenants/${id}`, data);
     return res.data.data;
+  },
+
+  // Suspend / reactivate / delete a school
+  async suspendTenant(id: string, reason: string): Promise<{ message: string }> {
+    const res = await apiClient.post(`/tenants/${id}/suspend`, { reason });
+    return { message: res.data.message };
+  },
+
+  async reactivateTenant(id: string): Promise<{ message: string }> {
+    const res = await apiClient.post(`/tenants/${id}/reactivate`);
+    return { message: res.data.message };
+  },
+
+  async getDeletionPreview(id: string): Promise<DeletionPreview> {
+    const res = await apiClient.get(`/tenants/${id}/deletion-preview`);
+    return res.data.data;
+  },
+
+  async deleteTenant(id: string, confirmName: string): Promise<{ message: string }> {
+    const res = await apiClient.delete(`/tenants/${id}`, { data: { confirmName }, timeout: 120000 });
+    return { message: res.data.message };
+  },
+
+  // "Book a demo" requests from the website
+  async getDemoRequests(params?: { status?: string; search?: string; limit?: number }): Promise<{
+    requests: DemoRequest[];
+    counts: Record<DemoRequestStatus, number>;
+  }> {
+    const res = await apiClient.get('/demo-requests', { params: { limit: 200, ...params } });
+    return res.data.data;
+  },
+
+  async updateDemoRequest(id: string, status: DemoRequestStatus): Promise<DemoRequest> {
+    const res = await apiClient.patch(`/demo-requests/${id}`, { status });
+    return res.data.data;
+  },
+
+  async deleteDemoRequest(id: string): Promise<void> {
+    await apiClient.delete(`/demo-requests/${id}`);
   },
 
   // 4. Impersonation

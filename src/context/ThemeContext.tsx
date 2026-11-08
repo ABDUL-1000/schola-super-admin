@@ -9,7 +9,7 @@ interface ThemeContextType {
 }
 
 const ThemeContext = createContext<ThemeContextType>({
-  theme: 'dark',
+  theme: 'light',
   toggleTheme: () => {},
   setTheme: () => {},
 });
@@ -23,11 +23,9 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       if (stored === 'light' || stored === 'dark') {
         return stored;
       }
-      return window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches
-        ? 'dark'
-        : 'light';
     }
-    return 'dark';
+    // Light unless the admin picked dark.
+    return 'light';
   });
 
   const applyTheme = (targetTheme: Theme) => {

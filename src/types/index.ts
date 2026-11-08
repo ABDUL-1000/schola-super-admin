@@ -98,6 +98,8 @@ export interface TenantSchool {
   rejectionReason?: string | null;
   isLocked: boolean;
   lockReason: string | null;
+  /** SUSPENDED when the Schola team has suspended the whole school. */
+  accountStatus?: 'ACTIVE' | 'INACTIVE' | 'SUSPENDED';
   subscriptionExpiresAt: string | null;
   gracePeriodEndsAt: string | null;
   activeStudentCount: number;
@@ -192,4 +194,43 @@ export interface AdminUser {
   email: string;
   role: string;
   profileImage?: string | null;
+}
+
+export type DemoRequestStatus = 'NEW' | 'CONTACTED' | 'SCHEDULED' | 'COMPLETED' | 'CLOSED';
+
+export interface DemoRequest {
+  id: string;
+  reference: string;
+  fullName: string;
+  role: string | null;
+  schoolName: string;
+  email: string;
+  phone: string;
+  state: string | null;
+  city: string | null;
+  studentPopulation: string | null;
+  modules: string[];
+  preferredDate: string | null;
+  preferredTime: string | null;
+  notes: string | null;
+  source: string | null;
+  status: DemoRequestStatus;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface DeletionPreview {
+  id: string;
+  schoolName: string;
+  slug: string;
+  email: string;
+  fileCount: number;
+  _count: {
+    branches: number;
+    staffs: number;
+    students: number;
+    classes: number;
+    feePayments: number;
+    subscriptionTransactions: number;
+  };
 }
