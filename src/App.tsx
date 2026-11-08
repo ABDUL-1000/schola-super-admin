@@ -4,6 +4,8 @@ import { Plus } from 'lucide-react';
 import type {
   AdminUser,
   BillingModel,
+  DemoRequest,
+  DemoRequestStatus,
   OnboardingQueueItem,
   OverviewMetrics,
   PlatformPricingConfig,
@@ -27,6 +29,7 @@ import { DynamicFeeModal } from '@/components/DynamicFeeModal';
 import { RecordManualPaymentModal } from '@/components/RecordManualPaymentModal';
 import { ImpersonationModal } from '@/components/ImpersonationBanner';
 import { DeleteSchoolModal, SuspendSchoolModal } from '@/components/SchoolLifecycleModals';
+import { DemoRequestsView } from '@/components/DemoRequestsView';
 
 const DEFAULT_PRICING: PlatformPricingConfig = {
   version: 0,
@@ -58,6 +61,7 @@ const EMPTY_OVERVIEW: OverviewMetrics = {
 const PAGES: Record<NavTab, { title: string; description: string; doc: string }> = {
   overview: { title: 'Overview', description: 'How Schola is doing today.', doc: 'Overview' },
   onboarding: { title: 'Approvals', description: 'New schools waiting for you. Approving emails them a link to finish setting up.', doc: 'Approvals' },
+  demos: { title: 'Demo requests', description: 'Schools that asked for a demo on the website. Call or WhatsApp them, then update the status.', doc: 'Demo requests' },
   tenants: { title: 'Schools', description: 'Every school on Schola: plans, billing, suspension and deletion.', doc: 'Schools' },
   reconciliation: { title: 'Payments', description: 'Confirm bank transfers and record payments you received.', doc: 'Payments' },
   pricing: { title: 'Pricing', description: 'The standard price schools pay.', doc: 'Pricing' },
@@ -79,6 +83,7 @@ export const App: React.FC = () => {
   const [transactions, setTransactions] = useState<SubscriptionTransaction[]>([]);
   const [queue, setQueue] = useState<OnboardingQueueItem[]>([]);
   const [pricing, setPricing] = useState<PlatformPricingConfig>(DEFAULT_PRICING);
+  const [demos, setDemos] = useState<DemoRequest[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
   // Dialogs
@@ -114,13 +119,14 @@ export const App: React.FC = () => {
     if (!adminUser) return;
     setIsLoading(true);
     try {
-      const results = await Promise.allSettled([api.getOverview(), api.getTenants({ limit: 500 }), api.getTransactions({ limit: 500 }), api.getPricing(), api.getOnboardingQueue()]);
-      const [o, t, tx, p, q] = results;
+      const results = await Promise.allSettled([api.getOverview(), api.getTenants({ limit: 500 }), api.getTransactions({ limit: 500 }), api.getPricing(), api.getOnboardingQueue(), api.getDemoRequests()]);
+      const [o, t, tx, p, q, d] = results;
       if (o.status === 'fulfilled' && o.value) setOverview(o.value);
       if (t.status === 'fulfilled' && t.value?.tenants) setTenants(t.value.tenants);
       if (tx.status === 'fulfilled' && tx.value?.transactions) setTransactions(tx.value.transactions);
       if (p.status === 'fulfilled' && p.value) setPricing(p.value);
       if (q.status === 'fulfilled' && q.value?.queue) setQueue(q.value.queue);
+      if (d.status === 'fulfilled' && d.value?.requests) setDemos(d.value.requests);
       const failed = results.find((r): r is PromiseRejectedResult => r.status === 'rejected');
       if (failed) {
         const e: any = failed.reason;
@@ -304,6 +310,26 @@ export const App: React.FC = () => {
     }
   };
 
+  const setDemoStatus = async (r: DemoRequest, status: DemoRequestStatus) => {
+    try {
+      const updated = await api.updateDemoRequest(r.id, status);
+      setDemos((list) => list.map((x) => (x.id === r.id ? { ...x, ...updated, reference: x.reference } : x)));
+    } catch (err: any) {
+      toast.error(errMsg(err, "Couldn't update the request."));
+    }
+  };
+
+  const deleteDemo = async (r: DemoRequest) => {
+    try {
+      await api.deleteDemoRequest(r.id);
+      setDemos((list) => list.filter((x) => x.id !== r.id));
+      toast.success('Request deleted.');
+    } catch (err: any) {
+      toast.error(errMsg(err, "Couldn't delete the request."));
+      throw err;
+    }
+  };
+
   const toaster = <Toaster position="top-right" theme={theme} richColors closeButton />;
 
   if (!adminUser) {
@@ -325,7 +351,7 @@ export const App: React.FC = () => {
       <AppLayout
         currentTab={currentTab}
         onSelectTab={setTab}
-        badges={{ onboarding: queue.length, reconciliation: pendingPayments }}
+        badges={{ onboarding: queue.length, reconciliation: pendingPayments, demos: demos.filter((d) => d.status === 'NEW').length }}
         admin={adminUser}
         onLogout={handleLogout}
         onRefresh={fetchData}
@@ -354,11 +380,12 @@ export const App: React.FC = () => {
             />
 
             {currentTab === 'overview' && (
-              <OverviewView overview={overview} schools={tenants} queue={queue} transactions={transactions} actions={schoolActions} isLoading={isLoading} go={setTab} />
+              <OverviewView overview={overview} schools={tenants} queue={queue} transactions={transactions} newDemos={demos.filter((d) => d.status === 'NEW').map((d) => d.schoolName)} actions={schoolActions} isLoading={isLoading} go={setTab} />
             )}
             {currentTab === 'onboarding' && (
               <OnboardingQueue queue={queue} isLoading={isLoading} onApprove={approveSchool} onReject={rejectSchool} onRefresh={fetchData} />
             )}
+            {currentTab === 'demos' && <DemoRequestsView requests={demos} isLoading={isLoading} onStatus={setDemoStatus} onDelete={deleteDemo} />}
             {currentTab === 'tenants' && <SchoolsView schools={tenants} actions={schoolActions} isLoading={isLoading} />}
             {currentTab === 'reconciliation' && (
               <ReconciliationQueue transactions={transactions} onApprove={approvePayment} onReject={rejectPayment} onOpenManualModal={() => setManualPaymentOpen(true)} isLoading={isLoading} />

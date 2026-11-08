@@ -196,6 +196,29 @@ export interface AdminUser {
   profileImage?: string | null;
 }
 
+export type DemoRequestStatus = 'NEW' | 'CONTACTED' | 'SCHEDULED' | 'COMPLETED' | 'CLOSED';
+
+export interface DemoRequest {
+  id: string;
+  reference: string;
+  fullName: string;
+  role: string | null;
+  schoolName: string;
+  email: string;
+  phone: string;
+  state: string | null;
+  city: string | null;
+  studentPopulation: string | null;
+  modules: string[];
+  preferredDate: string | null;
+  preferredTime: string | null;
+  notes: string | null;
+  source: string | null;
+  status: DemoRequestStatus;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface DeletionPreview {
   id: string;
   schoolName: string;

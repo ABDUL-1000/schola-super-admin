@@ -2,6 +2,8 @@ import axios from 'axios';
 import {
   AdminUser,
   DeletionPreview,
+  DemoRequest,
+  DemoRequestStatus,
   OnboardingQueueItem,
   OverviewMetrics,
   PlatformPricingConfig,
@@ -152,6 +154,24 @@ export const api = {
   async deleteTenant(id: string, confirmName: string): Promise<{ message: string }> {
     const res = await apiClient.delete(`/tenants/${id}`, { data: { confirmName }, timeout: 120000 });
     return { message: res.data.message };
+  },
+
+  // "Book a demo" requests from the website
+  async getDemoRequests(params?: { status?: string; search?: string; limit?: number }): Promise<{
+    requests: DemoRequest[];
+    counts: Record<DemoRequestStatus, number>;
+  }> {
+    const res = await apiClient.get('/demo-requests', { params: { limit: 200, ...params } });
+    return res.data.data;
+  },
+
+  async updateDemoRequest(id: string, status: DemoRequestStatus): Promise<DemoRequest> {
+    const res = await apiClient.patch(`/demo-requests/${id}`, { status });
+    return res.data.data;
+  },
+
+  async deleteDemoRequest(id: string): Promise<void> {
+    await apiClient.delete(`/demo-requests/${id}`);
   },
 
   // 4. Impersonation

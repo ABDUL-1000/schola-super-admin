@@ -11,10 +11,12 @@ export const OverviewView: React.FC<{
   schools: TenantSchool[];
   queue: OnboardingQueueItem[];
   transactions: SubscriptionTransaction[];
+  /** School names of demo requests nobody has followed up yet. */
+  newDemos?: string[];
   actions: SchoolActions;
   isLoading: boolean;
   go: (t: NavTab) => void;
-}> = ({ overview, schools, queue, transactions, actions, isLoading, go }) => {
+}> = ({ overview, schools, queue, transactions, newDemos = [], actions, isLoading, go }) => {
   const k = overview.kpis;
   const pendingPayments = transactions.filter((t) => t.status === 'PENDING');
 
@@ -31,6 +33,14 @@ export const OverviewView: React.FC<{
       tone: 'warning',
       action: () => go('onboarding'),
       cta: 'Review',
+    });
+  if (newDemos.length)
+    todo.push({
+      title: `${newDemos.length} new demo request${newDemos.length === 1 ? '' : 's'}`,
+      text: newDemos.slice(0, 3).join(', ') + (newDemos.length > 3 ? '…' : ''),
+      tone: 'warning',
+      action: () => go('demos'),
+      cta: 'Follow up',
     });
   if (pendingPayments.length)
     todo.push({

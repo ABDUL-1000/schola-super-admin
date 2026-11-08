@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 
-export type NavTab = 'overview' | 'onboarding' | 'tenants' | 'reconciliation' | 'pricing';
+export type NavTab = 'overview' | 'onboarding' | 'tenants' | 'demos' | 'reconciliation' | 'pricing';
 
 export type RoutePath =
   | '/dashboard'
@@ -8,6 +8,7 @@ export type RoutePath =
   | '/onboarding'
   | '/reconciliation'
   | '/pricing'
+  | '/demo-requests'
   | '/login';
 
 export const VALID_ROUTES: RoutePath[] = [
@@ -16,6 +17,7 @@ export const VALID_ROUTES: RoutePath[] = [
   '/onboarding',
   '/reconciliation',
   '/pricing',
+  '/demo-requests',
   '/login',
 ];
 
@@ -37,6 +39,7 @@ const RouterContext = createContext<RouterContextType | undefined>(undefined);
 export const pathToTab = (path: string): NavTab => {
   const clean = path.toLowerCase().replace(/\/$/, '') || '/';
   if (clean.includes('tenants')) return 'tenants';
+  if (clean.includes('demo')) return 'demos';
   if (clean.includes('onboarding') || clean.includes('approvals')) return 'onboarding';
   if (clean.includes('reconciliation') || clean.includes('payments')) return 'reconciliation';
   if (clean.includes('pricing')) return 'pricing';
@@ -53,6 +56,8 @@ export const tabToPath = (tab: NavTab): RoutePath => {
       return '/reconciliation';
     case 'pricing':
       return '/pricing';
+    case 'demos':
+      return '/demo-requests';
     case 'overview':
     default:
       return '/dashboard';

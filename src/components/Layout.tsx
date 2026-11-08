@@ -5,6 +5,7 @@ import {
   UserCheck,
   Receipt,
   Tags,
+  CalendarClock,
   LogOut,
   Menu,
   Moon,
@@ -21,6 +22,7 @@ const NAV: Array<{ tab: NavTab; label: string; icon: React.ReactNode }> = [
   { tab: 'overview', label: 'Overview', icon: <LayoutDashboard className="size-4" /> },
   { tab: 'onboarding', label: 'Approvals', icon: <UserCheck className="size-4" /> },
   { tab: 'tenants', label: 'Schools', icon: <School className="size-4" /> },
+  { tab: 'demos', label: 'Demo requests', icon: <CalendarClock className="size-4" /> },
   { tab: 'reconciliation', label: 'Payments', icon: <Receipt className="size-4" /> },
   { tab: 'pricing', label: 'Pricing', icon: <Tags className="size-4" /> },
 ];
