@@ -1,6 +1,7 @@
 import axios from 'axios';
 import {
   AdminUser,
+  DeletionPreview,
   OnboardingQueueItem,
   OverviewMetrics,
   PlatformPricingConfig,
@@ -130,6 +131,27 @@ export const api = {
   ): Promise<{ school: TenantSchool; computedBilling: any }> {
     const res = await apiClient.put(`/tenants/${id}`, data);
     return res.data.data;
+  },
+
+  // Suspend / reactivate / delete a school
+  async suspendTenant(id: string, reason: string): Promise<{ message: string }> {
+    const res = await apiClient.post(`/tenants/${id}/suspend`, { reason });
+    return { message: res.data.message };
+  },
+
+  async reactivateTenant(id: string): Promise<{ message: string }> {
+    const res = await apiClient.post(`/tenants/${id}/reactivate`);
+    return { message: res.data.message };
+  },
+
+  async getDeletionPreview(id: string): Promise<DeletionPreview> {
+    const res = await apiClient.get(`/tenants/${id}/deletion-preview`);
+    return res.data.data;
+  },
+
+  async deleteTenant(id: string, confirmName: string): Promise<{ message: string }> {
+    const res = await apiClient.delete(`/tenants/${id}`, { data: { confirmName }, timeout: 120000 });
+    return { message: res.data.message };
   },
 
   // 4. Impersonation
