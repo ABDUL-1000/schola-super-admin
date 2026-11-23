@@ -129,6 +129,7 @@ export const api = {
       lockReason?: string | null;
       subscriptionExpiresAt?: string | null;
       gracePeriodEndsAt?: string | null;
+      planLimits?: { students?: number | null; staff?: number | null } | null;
     },
   ): Promise<{ school: TenantSchool; computedBilling: any }> {
     const res = await apiClient.put(`/tenants/${id}`, data);
@@ -199,6 +200,7 @@ export const api = {
     cbtProRatePerStudent: number;
     aiEliteRatePerStudent: number;
     minimumStudentFloor: number;
+    maximumBilledStudents: number;
     defaultGracePeriodDays: number;
   }): Promise<PlatformPricingConfig> {
     const res = await apiClient.put('/pricing', data);

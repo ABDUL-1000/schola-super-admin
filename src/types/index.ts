@@ -107,6 +107,22 @@ export interface TenantSchool {
   branchCount: number;
   computedBilling: ComputedBilling;
   createdAt: string;
+  /** What the school can use right now: its trial, the paid tier, or the free plan. */
+  plan?: EffectivePlan;
+  /** Free-plan limits agreed for this school (empty = standard 100 students / 10 staff). */
+  planLimits?: { students?: number; staff?: number } | null;
+}
+
+export type PlanState = 'TRIAL' | 'PAID' | 'FREE';
+
+export interface EffectivePlan {
+  state: PlanState;
+  tier: SubscriptionTier;
+  label: string;
+  endsAt: string | null;
+  daysLeft: number | null;
+  limits: { students: number | null; staff: number | null; branches: number | null; cbtExams: number | null };
+  features: Record<string, boolean>;
 }
 
 export interface PlatformPricingConfig {
@@ -115,6 +131,8 @@ export interface PlatformPricingConfig {
   cbtProRatePerStudent: number;
   aiEliteRatePerStudent: number;
   minimumStudentFloor: number;
+  /** Schools are billed for at most this many students a term (0 = no cap). */
+  maximumBilledStudents: number;
   defaultGracePeriodDays: number;
   isActive?: boolean;
   updatedAt?: string;

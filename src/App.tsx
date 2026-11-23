@@ -37,6 +37,7 @@ const DEFAULT_PRICING: PlatformPricingConfig = {
   cbtProRatePerStudent: 0,
   aiEliteRatePerStudent: 0,
   minimumStudentFloor: 0,
+  maximumBilledStudents: 0,
   defaultGracePeriodDays: 14,
 };
 
@@ -176,6 +177,7 @@ export const App: React.FC = () => {
       lockReason: string | null;
       subscriptionExpiresAt: string | null;
       gracePeriodEndsAt: string | null;
+      planLimits: { students?: number | null; staff?: number | null } | null;
     },
   ) => {
     try {
@@ -217,6 +219,19 @@ export const App: React.FC = () => {
         await fetchData();
       } catch (err: any) {
         toast.error(errMsg(err, "Couldn't extend the grace period."));
+      }
+    },
+    onExtendTrial: async (s) => {
+      // 14 days from today, or from the current trial end if that's later.
+      const from = s.subscriptionStatus === 'TRIAL' && s.subscriptionExpiresAt ? new Date(s.subscriptionExpiresAt) : new Date();
+      const base = from.getTime() > Date.now() ? from : new Date();
+      const until = new Date(base.getTime() + 14 * 24 * 60 * 60 * 1000);
+      try {
+        await api.updateTenant(s.id, { subscriptionStatus: 'TRIAL', subscriptionExpiresAt: until.toISOString(), isLocked: false, lockReason: null });
+        toast.success(`${s.schoolName}'s free trial now ends ${until.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' })}.`);
+        await fetchData();
+      } catch (err: any) {
+        toast.error(errMsg(err, "Couldn't extend the trial."));
       }
     },
   };
