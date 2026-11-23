@@ -9,6 +9,7 @@ interface GlobalPricingViewProps {
     cbtProRatePerStudent: number;
     aiEliteRatePerStudent: number;
     minimumStudentFloor: number;
+    maximumBilledStudents: number;
     defaultGracePeriodDays: number;
   }) => Promise<void>;
   isLoading: boolean;
@@ -17,6 +18,7 @@ interface GlobalPricingViewProps {
 export const GlobalPricingView: React.FC<GlobalPricingViewProps> = ({ pricing, onSavePricing }) => {
   const [rate, setRate] = useState(pricing.standardRatePerStudent);
   const [floor, setFloor] = useState(pricing.minimumStudentFloor);
+  const [cap, setCap] = useState(pricing.maximumBilledStudents);
   const [grace, setGrace] = useState(pricing.defaultGracePeriodDays);
   const [saving, setSaving] = useState(false);
 
@@ -24,10 +26,15 @@ export const GlobalPricingView: React.FC<GlobalPricingViewProps> = ({ pricing, o
   useEffect(() => {
     setRate(pricing.standardRatePerStudent);
     setFloor(pricing.minimumStudentFloor);
+    setCap(pricing.maximumBilledStudents);
     setGrace(pricing.defaultGracePeriodDays);
-  }, [pricing.version, pricing.standardRatePerStudent, pricing.minimumStudentFloor, pricing.defaultGracePeriodDays]);
+  }, [pricing.version, pricing.standardRatePerStudent, pricing.minimumStudentFloor, pricing.maximumBilledStudents, pricing.defaultGracePeriodDays]);
 
-  const dirty = rate !== pricing.standardRatePerStudent || floor !== pricing.minimumStudentFloor || grace !== pricing.defaultGracePeriodDays;
+  const dirty =
+    rate !== pricing.standardRatePerStudent ||
+    floor !== pricing.minimumStudentFloor ||
+    cap !== pricing.maximumBilledStudents ||
+    grace !== pricing.defaultGracePeriodDays;
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -39,6 +46,7 @@ export const GlobalPricingView: React.FC<GlobalPricingViewProps> = ({ pricing, o
         cbtProRatePerStudent: Number(rate),
         aiEliteRatePerStudent: Number(rate),
         minimumStudentFloor: Number(floor),
+        maximumBilledStudents: Number(cap),
         defaultGracePeriodDays: Number(grace),
       });
     } finally {
@@ -59,6 +67,16 @@ export const GlobalPricingView: React.FC<GlobalPricingViewProps> = ({ pricing, o
           </Field>
           <Field label="Minimum students billed" hint={`A school with fewer students still pays for ${floor || 0} (${naira(rate * floor)} a term).`}>
             <Input type="number" min="1" required value={floor} onChange={(e) => setFloor(Number(e.target.value))} className="tabular" />
+          </Field>
+          <Field
+            label="Most students billed"
+            hint={
+              cap > 0
+                ? `A school with more students only pays for ${cap} (${naira(rate * cap)} a term at most). 0 = no cap.`
+                : 'No cap: schools pay for every student.'
+            }
+          >
+            <Input type="number" min="0" required value={cap} onChange={(e) => setCap(Number(e.target.value))} className="tabular" />
           </Field>
         </div>
       </Card>

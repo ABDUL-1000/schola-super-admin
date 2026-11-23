@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { CheckCircle2, CircleAlert } from 'lucide-react';
 import type { OnboardingQueueItem, SubscriptionTier } from '@/types';
 import { APP_DOMAIN } from '@/lib/api';
-import { PLAN_LABEL } from '@/lib/school-status';
 import { Avatar, Button, Field, Modal, MoneyInput, Select, Textarea, humanize, shortDate } from '@/components/ui';
 
 interface OnboardingReviewModalProps {
@@ -20,8 +19,7 @@ const Row: React.FC<{ label: string; children: React.ReactNode }> = ({ label, ch
 );
 
 export const OnboardingReviewModal: React.FC<OnboardingReviewModalProps> = ({ school, onClose, onApprove, onReject }) => {
-  const [plan, setPlan] = useState<SubscriptionTier>(school.subscriptionTier || 'STANDARD');
-  const [trialDays, setTrialDays] = useState(14);
+  const [trialDays, setTrialDays] = useState(30);
   const [customRate, setCustomRate] = useState('');
   const [rejecting, setRejecting] = useState(false);
   const [reason, setReason] = useState('');
@@ -73,7 +71,7 @@ export const OnboardingReviewModal: React.FC<OnboardingReviewModalProps> = ({ sc
               disabled={unverified}
               title={unverified ? "The school hasn't verified its email yet" : undefined}
               onClick={() =>
-                run(() => onApprove(school.id, { initialPlan: plan, trialDays, customRate: customRate.trim() ? Number(customRate) : undefined }))
+                run(() => onApprove(school.id, { initialPlan: 'STANDARD', trialDays, customRate: customRate.trim() ? Number(customRate) : undefined }))
               }
             >
               Approve school
@@ -126,14 +124,7 @@ export const OnboardingReviewModal: React.FC<OnboardingReviewModalProps> = ({ sc
           </dl>
 
           <div className="grid gap-4 sm:grid-cols-2">
-            <Field label="Plan">
-              <Select value={plan} onChange={(e) => setPlan(e.target.value as SubscriptionTier)}>
-                {Object.entries(PLAN_LABEL).map(([v, l]) => (
-                  <option key={v} value={v}>{l}</option>
-                ))}
-              </Select>
-            </Field>
-            <Field label="Free trial">
+            <Field label="Free trial" hint="Every feature is unlocked during the trial. Afterwards they're on the free plan until they pay for Standard.">
               <Select value={trialDays} onChange={(e) => setTrialDays(Number(e.target.value))}>
                 <option value={7}>7 days</option>
                 <option value={14}>14 days</option>

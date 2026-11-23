@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { Ban, CalendarPlus, LogIn, PlayCircle, Search, School, Settings2, Trash2 } from 'lucide-react';
+import { Ban, CalendarClock, CalendarPlus, LogIn, PlayCircle, Search, School, Settings2, Trash2 } from 'lucide-react';
 import type { TenantSchool } from '@/types';
 import { APP_DOMAIN } from '@/lib/api';
 import { schoolState, PLAN_LABEL, type SchoolStateKey } from '@/lib/school-status';
@@ -12,6 +12,7 @@ export interface SchoolActions {
   onDelete: (s: TenantSchool) => void;
   onImpersonate: (s: TenantSchool) => void;
   onExtendGrace: (s: TenantSchool) => void;
+  onExtendTrial: (s: TenantSchool) => void;
 }
 
 type Filter = 'all' | 'live' | 'pending' | 'attention' | 'suspended';
@@ -19,7 +20,7 @@ const inFilter = (k: SchoolStateKey, f: Filter) =>
   f === 'all' ||
   (f === 'live' && (k === 'active' || k === 'trial')) ||
   (f === 'pending' && k === 'pending') ||
-  (f === 'attention' && (k === 'grace' || k === 'expired' || k === 'locked')) ||
+  (f === 'attention' && (k === 'grace' || k === 'expired' || k === 'locked' || k === 'free')) ||
   (f === 'suspended' && k === 'suspended');
 
 function menuFor(s: TenantSchool, a: SchoolActions): MenuItem[] {
@@ -29,6 +30,9 @@ function menuFor(s: TenantSchool, a: SchoolActions): MenuItem[] {
   if (approved) {
     items.push({ label: 'Edit plan & billing', icon: <Settings2 />, onClick: () => a.onEditPlan(s) });
     items.push({ label: 'Sign in as this school', icon: <LogIn />, onClick: () => a.onImpersonate(s), disabled: st.key === 'suspended' });
+    if (st.key === 'trial' || st.key === 'free') {
+      items.push({ label: 'Extend free trial by 14 days', icon: <CalendarClock />, onClick: () => a.onExtendTrial(s) });
+    }
     if (st.key === 'expired' || st.key === 'grace' || st.key === 'locked') {
       items.push({ label: 'Give 14 more days', icon: <CalendarPlus />, onClick: () => a.onExtendGrace(s) });
     }
@@ -108,8 +112,14 @@ export const SchoolsTable: React.FC<{
                 </td>
                 {!compact && (
                   <td className="px-4 py-3.5 text-slate-700 dark:text-slate-300">
-                    {PLAN_LABEL[s.subscriptionTier] || s.subscriptionTier}
-                    {s.customStudentRate ? <div className="text-xs text-slate-500">Agreed rate</div> : null}
+                    {s.plan?.state === 'FREE' ? 'Free plan' : PLAN_LABEL[s.subscriptionTier] || s.subscriptionTier}
+                    {s.plan?.state === 'TRIAL' && <div className="text-xs text-slate-500">Trial: all features</div>}
+                    {s.plan?.state === 'FREE' && (
+                      <div className="text-xs text-slate-500 tabular">
+                        Up to {s.plan.limits.students} students, {s.plan.limits.staff} staff
+                      </div>
+                    )}
+                    {s.plan?.state === 'PAID' && s.customStudentRate ? <div className="text-xs text-slate-500">Agreed rate</div> : null}
                   </td>
                 )}
                 <td className="px-4 py-3.5 text-right text-slate-700 tabular dark:text-slate-300">{s.activeStudentCount.toLocaleString()}</td>
