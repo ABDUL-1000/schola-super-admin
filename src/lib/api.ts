@@ -1,6 +1,9 @@
 import axios from 'axios';
 import {
   AdminUser,
+  AiDefaults,
+  AiLimits,
+  AiUsageOverview,
   DeletionPreview,
   DemoRequest,
   DemoRequestStatus,
@@ -243,6 +246,23 @@ export const api = {
     billedStudentCount?: number;
   }): Promise<any> {
     const res = await apiClient.post('/transactions/manual', data);
+    return res.data.data;
+  },
+
+  // AI usage and limits
+  async getAiUsage(): Promise<AiUsageOverview> {
+    const res = await apiClient.get('/ai');
+    return res.data.data;
+  },
+
+  async saveAiDefaults(data: Partial<AiDefaults>): Promise<AiUsageOverview> {
+    const res = await apiClient.put('/ai/defaults', data);
+    return res.data.data;
+  },
+
+  /** `null` puts the school back on the defaults. */
+  async saveSchoolAiLimits(schoolId: string, limits: Partial<AiLimits> | null): Promise<AiUsageOverview> {
+    const res = await apiClient.put(`/ai/schools/${schoolId}`, { limits });
     return res.data.data;
   },
 
