@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 
-export type NavTab = 'overview' | 'onboarding' | 'tenants' | 'demos' | 'reconciliation' | 'pricing';
+export type NavTab = 'overview' | 'onboarding' | 'tenants' | 'demos' | 'reconciliation' | 'pricing' | 'ai';
 
 export type RoutePath =
   | '/dashboard'
@@ -9,6 +9,7 @@ export type RoutePath =
   | '/reconciliation'
   | '/pricing'
   | '/demo-requests'
+  | '/ai-usage'
   | '/login';
 
 export const VALID_ROUTES: RoutePath[] = [
@@ -18,6 +19,7 @@ export const VALID_ROUTES: RoutePath[] = [
   '/reconciliation',
   '/pricing',
   '/demo-requests',
+  '/ai-usage',
   '/login',
 ];
 
@@ -38,6 +40,7 @@ const RouterContext = createContext<RouterContextType | undefined>(undefined);
 
 export const pathToTab = (path: string): NavTab => {
   const clean = path.toLowerCase().replace(/\/$/, '') || '/';
+  if (clean.includes('ai-usage')) return 'ai';
   if (clean.includes('tenants')) return 'tenants';
   if (clean.includes('demo')) return 'demos';
   if (clean.includes('onboarding') || clean.includes('approvals')) return 'onboarding';
@@ -58,6 +61,8 @@ export const tabToPath = (tab: NavTab): RoutePath => {
       return '/pricing';
     case 'demos':
       return '/demo-requests';
+    case 'ai':
+      return '/ai-usage';
     case 'overview':
     default:
       return '/dashboard';

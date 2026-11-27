@@ -40,3 +40,4 @@ Visit: `http://localhost:3004` (or navigate to `http://localhost:3001/super-admi
 ### Default Credentials
 - **Email:** `superadmin@schola.xyz`
 - **Password:** `Admin@123456`
+good, what do u think about allowing teachers to be able to scan or take pics of a written question then my AI will change it to typed exams where they can edit and save it as thier exam question, then they can download it too as pdf or word doc.

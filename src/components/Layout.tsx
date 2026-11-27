@@ -6,6 +6,7 @@ import {
   Receipt,
   Tags,
   CalendarClock,
+  Sparkles,
   LogOut,
   Menu,
   Moon,
@@ -25,6 +26,7 @@ const NAV: Array<{ tab: NavTab; label: string; icon: React.ReactNode }> = [
   { tab: 'demos', label: 'Demo requests', icon: <CalendarClock className="size-4" /> },
   { tab: 'reconciliation', label: 'Payments', icon: <Receipt className="size-4" /> },
   { tab: 'pricing', label: 'Pricing', icon: <Tags className="size-4" /> },
+  { tab: 'ai', label: 'AI usage', icon: <Sparkles className="size-4" /> },
 ];
 
 const Brand = () => (

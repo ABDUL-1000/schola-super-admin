@@ -30,6 +30,7 @@ import { RecordManualPaymentModal } from '@/components/RecordManualPaymentModal'
 import { ImpersonationModal } from '@/components/ImpersonationBanner';
 import { DeleteSchoolModal, SuspendSchoolModal } from '@/components/SchoolLifecycleModals';
 import { DemoRequestsView } from '@/components/DemoRequestsView';
+import { AiUsageView } from '@/components/AiUsageView';
 
 const DEFAULT_PRICING: PlatformPricingConfig = {
   version: 0,
@@ -66,6 +67,7 @@ const PAGES: Record<NavTab, { title: string; description: string; doc: string }>
   tenants: { title: 'Schools', description: 'Every school on Schola: plans, billing, suspension and deletion.', doc: 'Schools' },
   reconciliation: { title: 'Payments', description: 'Confirm bank transfers and record payments you received.', doc: 'Payments' },
   pricing: { title: 'Pricing', description: 'The standard price schools pay.', doc: 'Pricing' },
+  ai: { title: 'AI usage', description: "How much AI each school uses, the default limits every school gets, and limits for individual schools.", doc: 'AI usage' },
 };
 
 const errMsg = (e: any, fallback: string) => e?.response?.data?.message || e?.message || fallback;
@@ -406,6 +408,7 @@ export const App: React.FC = () => {
               <ReconciliationQueue transactions={transactions} onApprove={approvePayment} onReject={rejectPayment} onOpenManualModal={() => setManualPaymentOpen(true)} isLoading={isLoading} />
             )}
             {currentTab === 'pricing' && <GlobalPricingView pricing={pricing} onSavePricing={savePricing} isLoading={isLoading} />}
+            {currentTab === 'ai' && <AiUsageView />}
           </div>
         )}
       </AppLayout>

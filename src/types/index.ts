@@ -252,3 +252,44 @@ export interface DeletionPreview {
     subscriptionTransactions: number;
   };
 }
+
+// ── AI usage ──
+export interface AiLimits {
+  enabled: boolean;
+  teacherPerSchool: number;
+  teacherPerStaff: number;
+  tutorPerSchool: number;
+  tutorPerStudent: number;
+}
+export interface AiDefaults extends AiLimits {
+  /** Real AI calls a day across every school (0 = no cap). */
+  platformDaily: number;
+}
+export interface AiWindow {
+  today: number;
+  week: number;
+  month: number;
+}
+export interface AiSchoolUsage {
+  id: string;
+  schoolName: string;
+  slug: string;
+  logo: string | null;
+  plan: { state: 'TRIAL' | 'PAID' | 'FREE'; label: string; aiIncluded: boolean };
+  tutorSwitchedOnBySchool: boolean;
+  perStudentSetBySchool: number;
+  teacher: AiWindow;
+  tutor: AiWindow;
+  studentsThisWeek: number;
+  tutorTokensMonth: number;
+  limits: AiLimits;
+  overrides: Partial<AiLimits>;
+  custom: boolean;
+}
+export interface AiUsageOverview {
+  ai: { configured: boolean; provider: string; model: string };
+  defaults: AiDefaults;
+  platform: { usedToday: number; cap: number; days: Array<{ date: string; teacher: number; tutor: number }> };
+  totals: { teacherToday: number; tutorToday: number; month: number; tokensMonth: number };
+  schools: AiSchoolUsage[];
+}
